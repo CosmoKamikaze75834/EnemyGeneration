@@ -5,11 +5,13 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Enemy : MonoBehaviour
 {
-    public event Action<Enemy> LifeTimeEnded;
+    [SerializeField] private float _speed;
 
     private Rigidbody _rigidbody;
 
     private int _lifeTime = 5;
+
+    public event Action<Enemy> LifeTimeEnded;
 
     private void Awake()
     {
@@ -21,9 +23,9 @@ public class Enemy : MonoBehaviour
         StartCoroutine(WaitForLifeTimeEnd());
     }
 
-    private void OnDisable()
+    public void MoveInDirection(Vector3 direction)
     {
-        StopCoroutine(WaitForLifeTimeEnd());
+        _rigidbody.velocity = direction.normalized * _speed;
     }
 
     public void ResetPosition()

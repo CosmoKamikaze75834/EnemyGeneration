@@ -10,13 +10,11 @@ public class Spawner : MonoBehaviour
     [SerializeField] private int _poolCapacity = 5;
     [SerializeField] private int _poolMaxSize = 5;
     [SerializeField] private GameObject[] _startPoint;
-    [SerializeField] private float _speed;
 
     private ObjectPool<Enemy> _pool;
 
     private bool _isOpen = true;
 
-    private int _min = 0;
     private float _horizontalLeft = -1f;
     private float _horizontalRight = 1f;
     private float _depthLeft = -1f;
@@ -40,7 +38,7 @@ public class Spawner : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(OnsetObject());
+        StartCoroutine(SpawnObject());
     }
 
     private void PrepareObject(Enemy enemy)
@@ -49,10 +47,15 @@ public class Spawner : MonoBehaviour
         enemy.gameObject.SetActive(true);
     }
 
-    private void GetSpawnPoint(Enemy enemy)
+    private void EstablishSpawnPoint(Enemy enemy)
     {
-        int index = Random.Range(_min, _startPoint.Length);
+        int index = Random.Range(0, _startPoint.Length);
         enemy.transform.position = _startPoint[index].transform.position;
+    }
+
+    private Vector3 GetRandomDirection()
+    {
+        return new Vector3(Random.Range(_horizontalLeft, _horizontalRight), _vertical, Random.Range(_depthLeft, _depthRight)).normalized;
     }
 
     private void ReturnEnemyPool(Enemy enemy)
@@ -61,22 +64,17 @@ public class Spawner : MonoBehaviour
         _pool.Release(enemy);
     }
 
-    private void GetDirection(Enemy enemy)
-    {
-        Rigidbody rigidbody = enemy.GetComponent<Rigidbody>();
-        Vector3 direction = new Vector3(Random.Range(_horizontalLeft, _horizontalRight), _vertical, Random.Range(_depthLeft, _depthRight)).normalized;
-        rigidbody.velocity = direction * _speed;
-    }
-
-    private IEnumerator OnsetObject()
+    private IEnumerator SpawnObject()
     {
         while (_isOpen)
         {
             if(_startPoint != null && _startPoint.Length != 0)
             {
                 Enemy enemy = _pool.Get();
-                GetSpawnPoint(enemy);
-                GetDirection(enemy);
+                EstablishSpawnPoint(enemy);
+
+                Vector3 direction = GetRandomDirection();
+                enemy.MoveInDirection(direction);
                 enemy.LifeTimeEnded += ReturnEnemyPool;
             }
 
